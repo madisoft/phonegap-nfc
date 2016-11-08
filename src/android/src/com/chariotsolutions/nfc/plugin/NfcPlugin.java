@@ -26,6 +26,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.NfcEvent;
 import android.nfc.Tag;
 import android.nfc.TagLostException;
+import android.nfc.tech.NfcA;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
@@ -266,15 +267,53 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         }
                         ndef.close();
                     } else {
+                        /*
                         NdefFormatable formatable = NdefFormatable.get(tag);
                         if (formatable != null) {
+                          try {
                             formatable.connect();
-                            formatable.format(message);
-                            callbackContext.success();
+                            formatable.format(null);
+                            callbackContext.success("formatable ha formattato");
                             formatable.close();
+                          } catch(Exception e) {
+                            formatable.close();
+                          }
                         } else {
                             callbackContext.error("Tag doesn't support NDEF");
                         }
+                      */
+
+                      NfcA nfcA = NfcA.get(tag);
+                      if (nfcA != null) {
+                          try {
+                              nfcA.connect();
+                              nfcA.transceive(new byte[] {
+                                  (byte)0xA2,
+                                  (byte)0x03,
+                                  (byte)0xE1, 
+                                  (byte)0x10, 
+                                  (byte)0x06, 
+                                  (byte)0x00
+                              });
+                              nfcA.transceive(new byte[] {
+                                  (byte)0xA2,
+                                  (byte)0x04,
+                                  (byte)0x03, 
+                                  (byte)0x00, 
+                                  (byte)0xFE, 
+                                  (byte)0x00
+                              });
+                          } catch (Exception e) {
+                            callbackContext.error(e.getMessage());
+                          } finally {
+                              try {
+                                  callbackContext.success("formatable custom success");
+                                  nfcA.close();
+                              } catch (Exception e) {
+                              }
+                          }
+                      }
+                    }
                     }
                 } catch (FormatException e) {
                     callbackContext.error(e.getMessage());
