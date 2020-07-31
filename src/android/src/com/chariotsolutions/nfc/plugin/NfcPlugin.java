@@ -3,6 +3,7 @@ package com.chariotsolutions.nfc.plugin;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -657,15 +658,13 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                     fireNdefEvent(NDEF_MIME, ndef, messages);
 
                 } else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
-                    for (String tagTech : tag.getTechList()) {
-                        Log.d(TAG, tagTech);
-                        if (tagTech.equals(NdefFormatable.class.getName())) {
-                            fireNdefFormatableEvent(tag);
-                        } else if (tagTech.equals(Ndef.class.getName())) { //
-                            Ndef ndef = Ndef.get(tag);
-                            fireNdefEvent(NDEF, ndef, messages);
-                        }
-                    }
+                List<String> techList = Arrays.asList(tag.getTechList());
+                  if (techList.contains(Ndef.class.getName())) {
+                    Ndef ndef = Ndef.get(tag);
+                    fireNdefEvent(NDEF, ndef, messages);
+                  } else if (techList.contains(NdefFormatable.class.getName())) {
+                    fireNdefFormatableEvent(tag);
+                  }
                 }
 
                 if (action.equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
